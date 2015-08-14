@@ -20,13 +20,13 @@ module TmpCache
       def set(key, value, expire=nil)
         cache[key] = {
           :value => value,
-          :expire => expire ? Time.now.to_i+expire.to_i : nil
+          :expire => expire ? actual_now.to_i+expire.to_i : nil
         }
         value
       end
 
       def get(key)
-        if cache[key][:expire] < Time.now.to_i
+        if cache[key][:expire] < actual_now.to_i
           return cache[key][:value] = nil
         else
           return cache[key][:value]
@@ -35,7 +35,7 @@ module TmpCache
 
       def gc
         cache.each do |k,c|
-          if c[:expire] != nil and Time.now.to_i > c[:expire].to_i
+          if c[:expire] != nil and actual_now.to_i > c[:expire].to_i
             cache.delete k
           end
         end
@@ -61,6 +61,12 @@ module TmpCache
           yield k, v[:value]
         end
       end
+
+      private
+      def actual_now
+        Time.respond_to?(:now_without_mock_time) ? Time.now_without_mock_time : Time.now
+      end
+
     end
 
   end
